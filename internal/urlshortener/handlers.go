@@ -1,9 +1,7 @@
 package urlshortener
 
 import (
-	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 	"time"
 )
@@ -23,34 +21,42 @@ func (app *App) registerURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Define the input.
+	// Read the request body.
 	var input struct {
 		Url      string    `json:"url"`
 		ExpireAt time.Time `json:"expireAt"`
 	}
-
-	// Prepare a JSON decoder.
-	r.Body = http.MaxBytesReader(w, r.Body, maxRequestBody)
-	decoder := json.NewDecoder(r.Body)
-	decoder.DisallowUnknownFields()
-
-	// Decode the body.
-	err := decoder.Decode(&input)
+	err := readJSON(w, r, &input)
 	if err != nil {
+		var internalErr *InternalError
+		switch {
+		case errors.As(err, &internalErr):
+			app.serverErrorResponse(w, r, err)
+		default:
+			app.badRequestResponse(w, r, err)
+		}
+		return
+	}
+
+	// Validate input.
+	switch {
+	case input.Url == "":
+		err := errors.New("url should not be empty")
+		app.badRequestResponse(w, r, err)
+		return
+	case input.ExpireAt.Before(time.Now()):
+		err := errors.New("expire time should be provided and be after now")
 		app.badRequestResponse(w, r, err)
 		return
 	}
 
-	// Prevent the case that the request contains more than 1 JSON.
-	err = decoder.Decode(&struct{}{})
-	if !errors.Is(err, io.EOF) {
-		app.badRequestResponse(w, r, errors.New("more than 1 JSON in the request"))
-		return
-	}
+	// Shorten the url.
+	shortUrl := shortenURL(input.Url)
 
 	// Write the json back for now.
 	data := envelop{
 		"your-request": input,
+		"shorten-url":  shortUrl,
 		"todo":         "shorten the url",
 	}
 	err = writeJSON(w, http.StatusOK, data, nil)
