@@ -8,11 +8,15 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
+	"time"
 )
 
 type envelop map[string]interface{} // wrap the data to be parsed into JSON
 
 const shortURLSize = 8
+
+var validURLExp = regexp.MustCompile(`^https?:\/\/`)
 
 // writeJson encodes data into JSON, and writes status, encoded data and headers into a response.
 func writeJSON(w http.ResponseWriter, status int, data envelop, headers http.Header) error {
@@ -80,4 +84,21 @@ func shortenURL(s string) string {
 	hash := sha256.Sum256([]byte(s))
 	encoded := base64.URLEncoding.EncodeToString(hash[:])
 	return string(encoded[:shortURLSize])
+}
+
+// validateURL returns error if s is not an URL.
+func validateURL(s string) error {
+	match := validURLExp.MatchString(s)
+	if !match {
+		return errors.New("invalid url")
+	}
+	return nil
+}
+
+// validateExpireTime returns error if t is before now.
+func validateExpireTime(t time.Time) error {
+	if t.Before(time.Now()) {
+		return errors.New("expired time should after now")
+	}
+	return nil
 }

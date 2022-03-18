@@ -39,14 +39,15 @@ func (app *App) registerURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate input.
-	switch {
-	case input.Url == "":
-		err := errors.New("url should not be empty")
-		app.badRequestResponse(w, r, err)
-		return
-	case input.ExpireAt.Before(time.Now()):
-		err := errors.New("expire time should be provided and be after now")
-		app.badRequestResponse(w, r, err)
+	var errs []string
+	if err := validateURL(input.Url); err != nil {
+		errs = append(errs, err.Error())
+	}
+	if err := validateExpireTime(input.ExpireAt); err != nil {
+		errs = append(errs, err.Error())
+	}
+	if len(errs) > 0 {
+		writeJSON(w, http.StatusBadRequest, envelop{"error": errs}, nil)
 		return
 	}
 
