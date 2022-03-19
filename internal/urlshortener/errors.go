@@ -20,22 +20,45 @@ func (e *InternalError) Error() string {
 	return e.Err.Error()
 }
 
+// logError logs err via app.Logger.
+func (app *App) logError(err error) {
+	app.logger.Println(err.Error())
+}
+
 // methodNotAllowedResponse informs the client that the method of this request is not allowed.
 func (app *App) methodNotAllowedResponse(w http.ResponseWriter, r *http.Request) {
 	msg := envelop{"error": "this method is not allowed"}
-	writeJSON(w, http.StatusMethodNotAllowed, msg, nil)
+	err := writeJSON(w, http.StatusMethodNotAllowed, msg, nil)
+	if err != nil {
+		app.logError(err)
+	}
 }
 
 // badRequestResponse informs the client of bad request.
 func (app *App) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
 	msg := envelop{"error": err.Error()}
-	writeJSON(w, http.StatusBadRequest, msg, nil)
+	err = writeJSON(w, http.StatusBadRequest, msg, nil)
+	if err != nil {
+		app.logError(err)
+	}
 }
 
 // serverErrorResponse informs the client of server internal error.
 func (app *App) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.logger.Println(err.Error())
 
-	msg := envelop{"error": errors.New("server cannot process your request now")}
-	writeJSON(w, http.StatusInternalServerError, msg, nil)
+	msg := envelop{"error": "server cannot process your request now"}
+	err = writeJSON(w, http.StatusInternalServerError, msg, nil)
+	if err != nil {
+		app.logError(err)
+	}
+}
+
+// recordNotFoundResponse informs the client that the requested record is not found
+func (app *App) recordNotFoundResponse(w http.ResponseWriter, r *http.Request) {
+	msg := envelop{"error": "record not found or expired"}
+	err := writeJSON(w, http.StatusNotFound, msg, nil)
+	if err != nil {
+		app.logError(err)
+	}
 }

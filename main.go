@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	cfg := config.Config{Addr: ":8080"}
+	cfg := config.New()
 	app := urlshortener.New(cfg)
 	log.Fatal(app.Serve())
 }
