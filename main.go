@@ -9,6 +9,9 @@ import (
 
 func main() {
 	cfg := config.New()
-	app := urlshortener.New(cfg)
+	app, err := urlshortener.New(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
 	log.Fatal(app.Serve())
 }

@@ -20,11 +20,6 @@ func (e *InternalError) Error() string {
 	return e.Err.Error()
 }
 
-// logError logs err via app.Logger.
-func (app *App) logError(err error) {
-	app.logger.Println(err.Error())
-}
-
 // methodNotAllowedResponse informs the client that the method of this request is not allowed.
 func (app *App) methodNotAllowedResponse(w http.ResponseWriter, r *http.Request) {
 	msg := envelop{"error": "this method is not allowed"}

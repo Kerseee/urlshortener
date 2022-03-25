@@ -14,8 +14,6 @@ import (
 
 type envelop map[string]interface{} // wrap the data to be parsed into JSON
 
-const shortURLSize = 8
-
 var validURLExp = regexp.MustCompile(`^https?:\/\/`)
 
 // writeJson encodes data into JSON, and writes status, encoded data and headers into a response.
@@ -79,11 +77,12 @@ func readJSON(w http.ResponseWriter, r *http.Request, v interface{}) error {
 	return nil
 }
 
-// shortenURL shortens s into 8 bytes long string.
-func shortenURL(s string) string {
+// hashAndEncode uses sha256 hash the string s and then encodes it with base64.
+// It returns a 44-byte-long string.
+func hashAndEncode(s string) string {
 	hash := sha256.Sum256([]byte(s))
-	encoded := base64.URLEncoding.EncodeToString(hash[:])
-	return string(encoded[:shortURLSize])
+	encoded := base64.RawURLEncoding.EncodeToString(hash[:])
+	return encoded
 }
 
 // validateURL returns error if s is not an URL.
@@ -101,4 +100,9 @@ func validateExpireTime(t time.Time) error {
 		return errors.New("expired time should after now")
 	}
 	return nil
+}
+
+// shortenURL shortens s into 8 bytes long string.
+func (app *App) shortenURL(s string) string {
+	return hashAndEncode(s)[:app.config.ShortURL.Len]
 }
