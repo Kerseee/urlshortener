@@ -53,14 +53,17 @@ func readJSON(w http.ResponseWriter, r *http.Request, v interface{}) error {
 		var syntaxErr *json.SyntaxError
 		var unMarshalTypeErr *json.UnmarshalTypeError
 		var invalidUnmarshalErr *json.InvalidUnmarshalError
+		var timeParsingErr *time.ParseError
 		switch {
 		case errors.As(err, &syntaxErr):
 			return fmt.Errorf("has syntax error at character %d in JSON", syntaxErr.Offset)
 		case errors.As(err, &unMarshalTypeErr):
 			return fmt.Errorf("has incorrect type at character %d in JSON", unMarshalTypeErr.Offset)
+		case errors.As(err, &timeParsingErr):
+			return fmt.Errorf("time format error")
 		case errors.Is(err, io.EOF):
 			return errors.New("JSON should not be empty")
-		case errors.Is(err, ErrRequestBodyTooLarge):
+		case err.Error() == ErrRequestBodyTooLarge.Error():
 			return errors.New("body size should not exceed 1 MB")
 		case errors.As(err, &invalidUnmarshalErr):
 			return &InternalError{Msg: "JSON decoding error", Err: err}

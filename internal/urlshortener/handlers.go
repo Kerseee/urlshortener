@@ -97,9 +97,9 @@ func (app *App) registerURL(w http.ResponseWriter, r *http.Request) {
 	app.writeShortURL(w, r, u.ShortPath)
 }
 
-// redirectHandler extracts the shortened URL in the request and redirects to the corresponding origin URL.
+// redirect extracts the shortened URL in the request and redirects to the corresponding origin URL.
 // If the shortened URL is not found or is found but expired, then send 404 not found to the client.
-func (app *App) redirectHandler(w http.ResponseWriter, r *http.Request) {
+func (app *App) redirect(w http.ResponseWriter, r *http.Request) {
 	// Check if the method is allowed.
 	if r.Method != http.MethodGet {
 		app.methodNotAllowedResponse(w, r)

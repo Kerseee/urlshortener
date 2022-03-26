@@ -40,7 +40,7 @@ func (app *App) badRequestResponse(w http.ResponseWriter, r *http.Request, err e
 
 // serverErrorResponse informs the client of server internal error.
 func (app *App) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
-	app.logger.Println(err.Error())
+	app.logError(err)
 
 	msg := envelop{"error": "server cannot process your request now"}
 	err = writeJSON(w, http.StatusInternalServerError, msg, nil)
