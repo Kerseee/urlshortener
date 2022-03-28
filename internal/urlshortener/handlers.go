@@ -52,7 +52,11 @@ func (app *App) registerURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Shorten the url.
-	shortPath := app.shortenURL(input.URL)
+	shortPath, err := app.shortenURL(input.URL)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 
 	// Insert the url.
 	u := data.URL{

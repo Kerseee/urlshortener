@@ -81,7 +81,7 @@ func readJSON(w http.ResponseWriter, r *http.Request, v interface{}) error {
 }
 
 // hashAndEncode uses sha256 hash the string s and then encodes it with base64.
-// It returns a 44-byte-long string.
+// It returns a 43-byte-long string.
 func hashAndEncode(s string) string {
 	hash := sha256.Sum256([]byte(s))
 	encoded := base64.RawURLEncoding.EncodeToString(hash[:])
@@ -106,6 +106,9 @@ func validateExpireTime(t time.Time) error {
 }
 
 // shortenURL shortens s into 8 bytes long string.
-func (app *App) shortenURL(s string) string {
-	return hashAndEncode(s)[:app.config.ShortURL.Len]
+func (app *App) shortenURL(s string) (string, error) {
+	if app.config.ShortURL.Len <= 0 || app.config.ShortURL.Len > 43 {
+		return "", errors.New("config.ShortURL.Len out of the range [1, 43]")
+	}
+	return hashAndEncode(s)[:app.config.ShortURL.Len], nil
 }

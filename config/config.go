@@ -39,7 +39,7 @@ func New() Config {
 	conf.DB.QueryTimeout = time.Second * time.Duration(*queryTimeOut)
 
 	flag.IntVar(&conf.ShortURL.Len, "len-short-url", 8, "Length of shortened URL (should be greater than 4 and less than 17)")
-	flag.IntVar(&conf.ShortURL.MaxReShortenLen, "max-len-reshort-url", 12, "Maximum length of shortened URL for reshortening URL in case of short URL conflicts, should be greater or equal than len-short-url and less than 43")
+	flag.IntVar(&conf.ShortURL.MaxReShortenLen, "max-len-reshort-url", 12, "Maximum length of shortened URL for reshortening URL in case of short URL conflicts, should be greater or equal than len-short-url and less than 44")
 
 	flag.Parse()
 
@@ -53,7 +53,7 @@ func (conf *Config) Validate() {
 	if conf.ShortURL.Len <= 4 || conf.ShortURL.Len >= 17 {
 		conf.ShortURL.Len = 8
 	}
-	if conf.ShortURL.MaxReShortenLen < conf.ShortURL.Len || conf.ShortURL.MaxReShortenLen >= 43 {
+	if conf.ShortURL.MaxReShortenLen < conf.ShortURL.Len || conf.ShortURL.MaxReShortenLen >= 44 {
 		conf.ShortURL.MaxReShortenLen = conf.ShortURL.Len + 4
 	}
 }

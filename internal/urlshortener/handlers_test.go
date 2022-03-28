@@ -34,7 +34,6 @@ func newTestApp() (*App, *bytes.Buffer) {
 	}, &logger
 }
 
-// TODO
 func TestRedirect(t *testing.T) {
 	app, _ := newTestApp()
 	tests := []struct {
