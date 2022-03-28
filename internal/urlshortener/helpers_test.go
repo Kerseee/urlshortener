@@ -51,7 +51,7 @@ func TestWriteJson(t *testing.T) {
 				t.Error("want non nil error, got nil error")
 			}
 			if err != nil && test.wantErr == nil {
-				t.Errorf("want nil error, got %v", err)
+				t.Errorf(`want nil error, got "%v"`, err)
 			}
 			if err != nil && test.wantErr != nil {
 				return
@@ -85,7 +85,7 @@ func TestWriteJson(t *testing.T) {
 				respVal := resp.Header.Get(key)
 				wantVal := test.wantHeader.Get(key)
 				if respVal != wantVal {
-					t.Errorf("want header %v has value %v, got %v", key, wantVal, respVal)
+					t.Errorf(`want header "%v" has value "%v", got "%v"`, key, wantVal, respVal)
 				}
 			}
 
@@ -112,9 +112,9 @@ func TestValidateURL(t *testing.T) {
 			err := validateURL(test.url)
 			switch {
 			case err == nil && test.wantErrMsg != "":
-				t.Errorf("want error message contains %v, got nil error", test.wantErrMsg)
+				t.Errorf(`want error message contains "%v", got nil error`, test.wantErrMsg)
 			case err != nil && test.wantErrMsg == "":
-				t.Errorf("want nil error, got %v", err)
+				t.Errorf(`want nil error, got "%v"`, err)
 			}
 		})
 	}
@@ -174,14 +174,15 @@ func TestReadJson(t *testing.T) {
 	}
 
 	for _, test := range tests {
-
 		t.Run(test.name, func(t *testing.T) {
+			// Send a request
 			r := httptest.NewRequest(http.MethodPost, "http://localhost:8080/api/v1/urls", bytes.NewReader([]byte(test.body)))
 			r.Header.Add("Content-Type", "application/json")
 			w := httptest.NewRecorder()
-
 			var u urlBody
 			err := readJSON(w, r, &u)
+
+			// Check the response
 			switch {
 			case err == nil && test.wantErrMsg == "":
 				wantData, ok := test.wantData.(urlBody)
@@ -189,17 +190,17 @@ func TestReadJson(t *testing.T) {
 					t.Fatal("type assertion fail")
 				}
 				if u.Url != wantData.Url {
-					t.Errorf("want data has url %s, got %s", wantData.Url, u.Url)
+					t.Errorf(`want data has url "%s", got "%s"`, wantData.Url, u.Url)
 				}
 				if !u.ExpireAt.Equal(wantData.ExpireAt) {
 					t.Errorf("want data has expire time %v, got %v", wantData.ExpireAt, u.ExpireAt)
 				}
 			case err == nil && test.wantErrMsg != "":
-				t.Errorf("want error message contains %v, got nil", test.wantErrMsg)
+				t.Errorf(`want error message contains "%s", got nil`, test.wantErrMsg)
 			case err != nil && test.wantErrMsg == "":
-				t.Errorf("want nil error, got %v", err)
+				t.Errorf(`want nil error, got "%v"`, err)
 			case err != nil && !strings.Contains(err.Error(), test.wantErrMsg):
-				t.Errorf("want error message contains %v, got %v", test.wantErrMsg, err)
+				t.Errorf(`want error message contains "%s", got "%v"`, test.wantErrMsg, err)
 			}
 			r.Body.Close()
 		})
@@ -222,7 +223,7 @@ func TestHashAndEncode(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			encoded := hashAndEncode(test.str)
 			if len(encoded) != 43 {
-				t.Fatalf("want 43-byte-long encoded string, got %s", encoded)
+				t.Fatalf(`want 43-byte-long encoded string, got "%s"`, encoded)
 			}
 		})
 	}
@@ -276,19 +277,17 @@ func TestValidateExpireTime(t *testing.T) {
 			err := validateExpireTime(test.time)
 			switch {
 			case err == nil && test.wantErrMsg != "":
-				t.Errorf("want error message contains %s, got nil error", test.wantErrMsg)
+				t.Errorf(`want error message contains "%s", got nil error`, test.wantErrMsg)
 			case err != nil && test.wantErrMsg == "":
 				t.Errorf("want nil error, got %v", err)
 			case err != nil && !strings.Contains(err.Error(), test.wantErrMsg):
-				t.Errorf("want error message contains %s, got %v", test.wantErrMsg, err)
+				t.Errorf(`want error message contains "%s", got "%v"`, test.wantErrMsg, err)
 			}
 		})
 	}
 }
 
 func TestShortenURL(t *testing.T) {
-	app, _ := newTestApp()
-
 	tests := []struct {
 		name        string
 		url         string
@@ -321,6 +320,7 @@ func TestShortenURL(t *testing.T) {
 		},
 	}
 
+	app, _ := newTestApp()
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			app.config.ShortURL.Len = test.lenShortURL
@@ -331,11 +331,11 @@ func TestShortenURL(t *testing.T) {
 					t.Errorf("want short url %d-byte-long, got %d-byte-long", test.lenShortURL, len(shortURL))
 				}
 			case err == nil && test.wantErrMsg != "":
-				t.Errorf("want error message contains %s, got nil error", test.wantErrMsg)
+				t.Errorf(`want error message contains "%s", got nil error`, test.wantErrMsg)
 			case err != nil && test.wantErrMsg == "":
 				t.Errorf("want nil error, got %v", err)
 			case err != nil && !strings.Contains(err.Error(), test.wantErrMsg):
-				t.Errorf("want error message contains %s, got %v", test.wantErrMsg, err)
+				t.Errorf(`want error message contains "%s", got "%v"`, test.wantErrMsg, err)
 			}
 		})
 	}

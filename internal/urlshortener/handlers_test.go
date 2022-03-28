@@ -1,38 +1,12 @@
 package urlshortener
 
 import (
-	"bytes"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
-
-	"github.com/Kerseee/urlshortener/config"
-	"github.com/Kerseee/urlshortener/internal/data/mock"
 )
-
-// newTestServer returns a pointer point to an App instance and a bytes.Buffer as logger.
-func newTestApp() (*App, *bytes.Buffer) {
-	conf := config.Config{
-		Addr: "http://localhost:8080",
-		ShortURL: struct {
-			Len             int
-			MaxReShortenLen int
-		}{
-			Len:             8,
-			MaxReShortenLen: 12,
-		},
-	}
-
-	logger := bytes.Buffer{}
-	return &App{
-		config:   conf,
-		logger:   log.New(&logger, "", 0),
-		urlModel: &mock.URLModel{},
-	}, &logger
-}
 
 func TestRedirect(t *testing.T) {
 	app, _ := newTestApp()
@@ -74,11 +48,11 @@ func TestRedirect(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		r := httptest.NewRequest(test.method, test.shortURL, nil)
-		w := httptest.NewRecorder()
-
 		t.Run(test.name, func(t *testing.T) {
+			r := httptest.NewRequest(test.method, test.shortURL, nil)
+			w := httptest.NewRecorder()
 			app.redirect(w, r)
+
 			resp := w.Result()
 			defer resp.Body.Close()
 
@@ -92,7 +66,7 @@ func TestRedirect(t *testing.T) {
 				return
 			}
 			if !strings.Contains(string(body), test.wantBody) {
-				t.Errorf("want body contains %s, got %s", test.wantBody, body)
+				t.Errorf("want body contains %s, got %s", test.wantBody, string(body))
 			}
 		})
 	}
