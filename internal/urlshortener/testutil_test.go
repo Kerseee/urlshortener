@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/Kerseee/urlshortener/config"
@@ -34,27 +33,59 @@ func newTestApp() (*App, *bytes.Buffer) {
 	}, &logger
 }
 
-// validateHTTPJsonResponse validates the populated responseRecorder w and Request r with wantCode and wantBody.
-//
-// It checks if the response has "Content-Type" header with value as "application/json".
-//
-// It will close w.Result().Body before return.
-func validateHTTPJsonResponse(t *testing.T, w *httptest.ResponseRecorder, r *http.Request, wantCode int, wantBody string) {
-	wantContentType := "application/json"
+// stringSet creates a set of string containing values in slice s.
+func stringSet(s []string) map[string]struct{} {
+	m := make(map[string]struct{})
+	for _, v := range s {
+		m[v] = struct{}{}
+	}
+	return m
+}
 
+// validateCode check if want equals got.
+func validateCode(t *testing.T, want, got int) {
+	if want != got {
+		t.Errorf("want status code %d, got %d", want, got)
+	}
+}
+
+// validateHeader check if headers in want are all present in got.
+func validateHeader(t *testing.T, want, got http.Header) {
+	for header, vals := range want {
+		gotVals, ok := got[header]
+		if !ok {
+			t.Errorf(`miss header %q with values "%v"`, header, gotVals)
+			continue
+		}
+		gotValSet := stringSet(gotVals)
+		var miss []string
+		for _, v := range vals {
+			if _, ok := gotValSet[v]; !ok {
+				miss = append(miss, v)
+			}
+		}
+		if len(miss) > 0 {
+			t.Errorf(`miss values "%v" in the header %q`, miss, header)
+		}
+	}
+}
+
+// validateBodyContains check if got contains want.
+func validateBodyContains(t *testing.T, want, got []byte) {
+	if !bytes.Contains(got, want) {
+		t.Errorf("want body contains %q, got %q", want, got)
+	}
+}
+
+// getResponse extracts the status code, header and body from the response recorder w.
+// It close the resp.Body after reading the response body.
+func getResponse(t *testing.T, w *httptest.ResponseRecorder) (code int, header http.Header, body []byte) {
 	resp := w.Result()
 	defer resp.Body.Close()
-	if resp.StatusCode != wantCode {
-		t.Errorf("want status code %d, got %d", wantCode, resp.StatusCode)
-	}
-	if contentType := resp.Header.Get("Content-Type"); contentType != wantContentType {
-		t.Errorf(`want header "Content-Type" has value "%s", got "%s"`, wantContentType, contentType)
-	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if b := string(body); !strings.Contains(b, wantBody) {
-		t.Errorf(`want body contains "%s", got "%s"`, wantBody, b)
-	}
+
+	return resp.StatusCode, resp.Header, body
 }

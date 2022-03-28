@@ -1,10 +1,8 @@
 package urlshortener
 
 import (
-	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 )
 
@@ -49,25 +47,17 @@ func TestRedirect(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			// Send a request.
 			r := httptest.NewRequest(test.method, test.shortURL, nil)
 			w := httptest.NewRecorder()
 			app.redirect(w, r)
 
-			resp := w.Result()
-			defer resp.Body.Close()
+			// Extract the response.
+			code, _, body := getResponse(t, w)
 
-			if resp.StatusCode != test.wantCode {
-				t.Errorf("want status code %d, got %d", test.wantCode, resp.StatusCode)
-			}
-
-			body, err := io.ReadAll(resp.Body)
-			if err != nil {
-				t.Fatal(err)
-				return
-			}
-			if !strings.Contains(string(body), test.wantBody) {
-				t.Errorf("want body contains %s, got %s", test.wantBody, string(body))
-			}
+			// Validate the response.
+			validateCode(t, test.wantCode, code)
+			validateBodyContains(t, []byte(test.wantBody), body)
 		})
 	}
 }

@@ -12,11 +12,13 @@ import (
 
 func TestMethodNotAllowedResponse(t *testing.T) {
 	want := struct {
-		code int
-		body string
+		code   int
+		header http.Header
+		body   string
 	}{
-		code: http.StatusMethodNotAllowed,
-		body: "this method is not allowed",
+		code:   http.StatusMethodNotAllowed,
+		header: http.Header{"Content-Type": []string{"application/json"}},
+		body:   "this method is not allowed",
 	}
 
 	tests := []struct {
@@ -43,20 +45,25 @@ func TestMethodNotAllowedResponse(t *testing.T) {
 			app.methodNotAllowedResponse(w, r)
 
 			// Check the response.
-			validateHTTPJsonResponse(t, w, r, want.code, want.body)
+			code, header, body := getResponse(t, w)
+			validateCode(t, want.code, code)
+			validateHeader(t, want.header, header)
+			validateBodyContains(t, []byte(want.body), body)
 		})
 	}
 }
 
 func TestBadRequestResponse(t *testing.T) {
 	want := struct {
-		err  error
-		code int
-		body string
+		err    error
+		code   int
+		header http.Header
+		body   string
 	}{
-		err:  errors.New("this is a bad request"),
-		code: http.StatusBadRequest,
-		body: "this is a bad request",
+		err:    errors.New("this is a bad request"),
+		code:   http.StatusBadRequest,
+		header: http.Header{"Content-Type": []string{"application/json"}},
+		body:   "this is a bad request",
 	}
 
 	// Send a request.
@@ -66,20 +73,25 @@ func TestBadRequestResponse(t *testing.T) {
 	app.badRequestResponse(w, r, want.err)
 
 	// Check the response.
-	validateHTTPJsonResponse(t, w, r, want.code, want.body)
+	code, header, body := getResponse(t, w)
+	validateCode(t, want.code, code)
+	validateHeader(t, want.header, header)
+	validateBodyContains(t, []byte(want.body), body)
 }
 
 func TestServerErrorResponse(t *testing.T) {
 	want := struct {
-		err  error
-		log  string
-		code int
-		body string
+		err    error
+		log    string
+		code   int
+		header http.Header
+		body   string
 	}{
-		err:  errors.New("some internal server error"),
-		log:  "some internal server error",
-		code: http.StatusInternalServerError,
-		body: "server cannot process your request now",
+		err:    errors.New("some internal server error"),
+		log:    "some internal server error",
+		code:   http.StatusInternalServerError,
+		header: http.Header{"Content-Type": []string{"application/json"}},
+		body:   "server cannot process your request now",
 	}
 
 	// Send a request.
@@ -89,7 +101,12 @@ func TestServerErrorResponse(t *testing.T) {
 	app.serverErrorResponse(w, r, want.err)
 
 	// Check the response.
-	validateHTTPJsonResponse(t, w, r, want.code, want.body)
+	code, header, body := getResponse(t, w)
+	validateCode(t, want.code, code)
+	validateHeader(t, want.header, header)
+	validateBodyContains(t, []byte(want.body), body)
+
+	// Check the logger.
 	logMsg, err := io.ReadAll(logger)
 	if err != nil {
 		t.Fatal(err)
@@ -101,11 +118,13 @@ func TestServerErrorResponse(t *testing.T) {
 
 func TestRecordNotFoundResponse(t *testing.T) {
 	want := struct {
-		code int
-		body string
+		code   int
+		header http.Header
+		body   string
 	}{
-		code: http.StatusNotFound,
-		body: "record not found",
+		code:   http.StatusNotFound,
+		header: http.Header{"Content-Type": []string{"application/json"}},
+		body:   "record not found",
 	}
 
 	// Send a request.
@@ -114,6 +133,9 @@ func TestRecordNotFoundResponse(t *testing.T) {
 	w := httptest.NewRecorder()
 	app.recordNotFoundResponse(w, r)
 
-	// Validate the response
-	validateHTTPJsonResponse(t, w, r, want.code, want.body)
+	// Check the response.
+	code, header, body := getResponse(t, w)
+	validateCode(t, want.code, code)
+	validateHeader(t, want.header, header)
+	validateBodyContains(t, []byte(want.body), body)
 }

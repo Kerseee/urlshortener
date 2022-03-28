@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -58,37 +57,12 @@ func TestWriteJson(t *testing.T) {
 			}
 
 			// Check the response status code.
-			resp := w.Result()
-			defer resp.Body.Close()
-			if resp.StatusCode != test.wantCode {
-				t.Errorf("want status code %d, got %d", test.wantCode, resp.StatusCode)
+			code, header, body := getResponse(t, w)
+			validateCode(t, test.wantCode, code)
+			validateHeader(t, test.wantHeader, header)
+			for _, wantBody := range test.wantBody {
+				validateBodyContains(t, []byte(wantBody), body)
 			}
-
-			// Check the response body.
-			body, err := io.ReadAll(resp.Body)
-			if err != nil {
-				t.Fatal(err)
-			}
-			strBody := strings.TrimSpace(string(body))
-			var missBody []string
-			for _, want := range test.wantBody {
-				if !strings.Contains(strBody, want) {
-					missBody = append(missBody, want)
-				}
-			}
-			if len(missBody) > 0 {
-				t.Errorf("miss the followings in the response body: %v", missBody)
-			}
-
-			// Check the response header
-			for key := range test.wantHeader {
-				respVal := resp.Header.Get(key)
-				wantVal := test.wantHeader.Get(key)
-				if respVal != wantVal {
-					t.Errorf(`want header "%v" has value "%v", got "%v"`, key, wantVal, respVal)
-				}
-			}
-
 		})
 	}
 
