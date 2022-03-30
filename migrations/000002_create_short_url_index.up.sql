@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS short_url_index ON urls (short_url);
