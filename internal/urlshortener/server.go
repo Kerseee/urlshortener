@@ -3,6 +3,7 @@ package urlshortener
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -38,7 +39,7 @@ func New(conf config.Config) (*App, error) {
 
 // Serve opens a http server and serves http requests.
 func (app *App) Serve() error {
-	app.logger.Printf("Start server at %s\n", app.config.Addr)
+	app.logInfo(fmt.Sprintf("Start server at %s\n", app.config.Addr))
 	server := &http.Server{
 		Addr:    app.config.Addr,
 		Handler: app.routes(),
