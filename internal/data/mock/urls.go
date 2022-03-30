@@ -11,17 +11,17 @@ type URLModel struct{}
 
 // mockURL is a mocked data.URL instance.
 var mockURLs = map[string]data.URL{
-	"abcd1234": {
+	"BQRvJsg-": {
 		ID:        1,
-		URL:       "http://google.com",
+		URL:       "https://google.com",
 		ExpireAt:  time.Date(2022, time.December, 22, 12, 0, 0, 0, time.UTC),
-		ShortPath: "abcd1234",
+		ShortPath: "BQRvJsg-",
 	},
-	"abcd1235": {
+	"FGeTGg6M": {
 		ID:        2,
-		URL:       "http://github.com",
+		URL:       "https://youtube.com",
 		ExpireAt:  time.Date(2021, time.December, 22, 12, 0, 0, 0, time.UTC),
-		ShortPath: "abcd1235",
+		ShortPath: "FGeTGg6M",
 	},
 }
 
