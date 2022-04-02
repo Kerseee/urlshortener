@@ -1,3 +1,13 @@
+/*
+Package config provides a configuration struct used in the url shortener application.
+
+Before creating the url shortener application, please create a Config first:
+
+	conf := Config.New()
+
+This will parse all flags and store the configuration into a Config struct.
+*/
+
 package config
 
 import (
@@ -6,14 +16,22 @@ import (
 	"time"
 )
 
+// Config contains all configuration used in the application,
+// including the address of the server, configurations of database connection pool
+// and other customized configurations.
 type Config struct {
+	// Addr is the address or domain name and the port of this server.
+	//
+	// Example: localhost:8080
 	Addr string
-	DB   struct {
-		DSN          string
-		MaxOpenConns int
-		MaxIdleConns int
-		MaxIdleTime  int           // minutes
-		QueryTimeout time.Duration // seconds
+
+	// DB holds the settings of the database connection pool.
+	DB struct {
+		DSN          string        // dsn of the database, like "postgres://username:password@localhost/database"
+		MaxOpenConns int           // number of maximum open connections
+		MaxIdleConns int           // number of maximum idle connections
+		MaxIdleTime  int           // maximum idle time of a connection (minutes)
+		QueryTimeout time.Duration // maximum time for executing query to the database (seconds)
 	}
 	ShortURL struct {
 		Len int // length of shortened URL

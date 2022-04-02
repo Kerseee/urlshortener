@@ -1,3 +1,4 @@
+// Package data provides the url model for executing query from and to the database.
 package data
 
 import (

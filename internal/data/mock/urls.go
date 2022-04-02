@@ -1,3 +1,4 @@
+// Package mock provides mocked data for testing.
 package mock
 
 import (
