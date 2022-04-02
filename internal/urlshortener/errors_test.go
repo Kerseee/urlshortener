@@ -48,7 +48,7 @@ func TestMethodNotAllowedResponse(t *testing.T) {
 			code, header, body := getResponse(t, w)
 			validateCode(t, want.code, code)
 			validateHeader(t, want.header, header)
-			validateBodyContains(t, []byte(want.body), body)
+			validateBodyContains(t, want.body, string(body))
 		})
 	}
 }
@@ -76,7 +76,7 @@ func TestBadRequestResponse(t *testing.T) {
 	code, header, body := getResponse(t, w)
 	validateCode(t, want.code, code)
 	validateHeader(t, want.header, header)
-	validateBodyContains(t, []byte(want.body), body)
+	validateBodyContains(t, want.body, string(body))
 }
 
 func TestServerErrorResponse(t *testing.T) {
@@ -104,7 +104,7 @@ func TestServerErrorResponse(t *testing.T) {
 	code, header, body := getResponse(t, w)
 	validateCode(t, want.code, code)
 	validateHeader(t, want.header, header)
-	validateBodyContains(t, []byte(want.body), body)
+	validateBodyContains(t, want.body, string(body))
 
 	// Check the logger.
 	logMsg, err := io.ReadAll(logger)
@@ -137,5 +137,5 @@ func TestRecordNotFoundResponse(t *testing.T) {
 	code, header, body := getResponse(t, w)
 	validateCode(t, want.code, code)
 	validateHeader(t, want.header, header)
-	validateBodyContains(t, []byte(want.body), body)
+	validateBodyContains(t, want.body, string(body))
 }

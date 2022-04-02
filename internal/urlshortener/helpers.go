@@ -8,8 +8,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"regexp"
 	"time"
+
+	"github.com/Kerseee/urlshortener/internal/data"
 )
 
 type envelop map[string]interface{} // wrap the data to be parsed into JSON
@@ -111,4 +114,46 @@ func (app *App) shortenURL(s string) (string, error) {
 		return "", errors.New("config.ShortURL.Len out of the range [1, 43]")
 	}
 	return hashAndEncode(s)[:app.config.ShortURL.Len], nil
+}
+
+// reShortenUrl re-shortens the URL in u.
+//
+// This method is called in registerURL in case of short URL conflict.
+// reShortenURL keep adding 1 character to the short URL and trying to insert into the database.
+// The range of the length of short URLs are from app.config.Short.Len + 1 to app.config.ShortURL.MaxReShortenLen.
+func (app *App) reShortenURL(w http.ResponseWriter, r *http.Request, u *data.URL) {
+	// Hash and encodes the origin URL.
+	encodedURL := hashAndEncode(u.URL)
+
+	// Try inserting the shortened URL by adding 1 charachter each time.
+	for i := app.config.ShortURL.Len + 1; i <= app.config.ShortURL.MaxReShortenLen; i++ {
+		u.ShortPath = encodedURL[:i]
+		err := app.urlModel.Insert(u)
+		if err == nil {
+			app.writeShortURL(w, r, u.ShortPath)
+			return
+		}
+		if !errors.Is(err, data.ErrDuplicateShortUrl) {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+	}
+	app.serverErrorResponse(w, r, errors.New("server internal error: short URL conflict"))
+}
+
+// writeShortURL transform the shortPath into a valid short URL and writes the short URL to client.
+func (app *App) writeShortURL(w http.ResponseWriter, r *http.Request, shortPath string) {
+	shortURL := &url.URL{
+		Scheme: "http",
+		Host:   app.config.Addr,
+		Path:   shortPath,
+	}
+	data := envelop{
+		"id":       shortPath,
+		"shortUrl": shortURL.String(),
+	}
+	err := writeJSON(w, http.StatusOK, data, nil)
+	if err != nil {
+		app.logError(err)
+	}
 }

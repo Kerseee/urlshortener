@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/Kerseee/urlshortener/config"
@@ -71,8 +72,8 @@ func validateHeader(t *testing.T, want, got http.Header) {
 }
 
 // validateBodyContains check if got contains want.
-func validateBodyContains(t *testing.T, want, got []byte) {
-	if !bytes.Contains(got, want) {
+func validateBodyContains(t *testing.T, want, got string) {
+	if !strings.Contains(got, want) {
 		t.Errorf("want body contains %q, got %q", want, got)
 	}
 }

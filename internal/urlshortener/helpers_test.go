@@ -4,11 +4,14 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/Kerseee/urlshortener/internal/data"
 )
 
 func TestWriteJson(t *testing.T) {
@@ -61,7 +64,7 @@ func TestWriteJson(t *testing.T) {
 			validateCode(t, test.wantCode, code)
 			validateHeader(t, test.wantHeader, header)
 			for _, wantBody := range test.wantBody {
-				validateBodyContains(t, []byte(wantBody), body)
+				validateBodyContains(t, wantBody, string(body))
 			}
 		})
 	}
@@ -312,5 +315,93 @@ func TestShortenURL(t *testing.T) {
 				t.Errorf(`want error message contains "%s", got "%v"`, test.wantErrMsg, err)
 			}
 		})
+	}
+}
+
+func TestReShortenURL(t *testing.T) {
+	tests := []struct {
+		name     string
+		u        *data.URL
+		wantCode int
+		wantBody []string
+		wantLog  string
+	}{
+		{
+			name: "valid url",
+			u: &data.URL{
+				URL:      "https://facebook.com",
+				ExpireAt: time.Date(2025, 12, 22, 12, 0, 0, 0, time.UTC),
+			},
+			wantCode: http.StatusOK,
+			wantBody: []string{"id", "shortUrl", "localhost:8080"},
+		},
+		{
+			name: "conflict url",
+			u: &data.URL{
+				URL:      "https://netflix.com",
+				ExpireAt: time.Date(2025, 12, 22, 12, 0, 0, 0, time.UTC),
+			},
+			wantCode: http.StatusInternalServerError,
+			wantBody: []string{"error", "server cannot process your request now"},
+			wantLog:  "short URL conflict",
+		},
+	}
+
+	app, logger := newTestApp()
+	wantHeader := http.Header{"Content-Type": []string{"application/json"}}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// Send a request.
+			r := httptest.NewRequest(http.MethodPost, "http://localhost:8080/api/v1/urls", nil)
+			w := httptest.NewRecorder()
+			app.reShortenURL(w, r, test.u)
+
+			// Extract the response.
+			code, header, body := getResponse(t, w)
+
+			// Validate the response.
+			validateCode(t, test.wantCode, code)
+			validateHeader(t, wantHeader, header)
+			for _, wantBody := range test.wantBody {
+				validateBodyContains(t, wantBody, string(body))
+			}
+
+			if test.wantLog != "" {
+				logMsg, err := io.ReadAll(logger)
+				if err != nil {
+					t.Fatal(err)
+				}
+				validateBodyContains(t, test.wantLog, string(logMsg))
+			}
+		})
+	}
+}
+
+func TestWriteShortURL(t *testing.T) {
+	path := "abcd1234"
+	want := struct {
+		code   int
+		header http.Header
+		body   []string
+	}{
+		code:   http.StatusOK,
+		header: http.Header{"Content-Type": []string{"application/json"}},
+		body:   []string{"id", "abcd1234", "shortUrl", "localhost:8080/" + path},
+	}
+
+	// Send a request
+	r := httptest.NewRequest(http.MethodPost, "http://localhost:8080/api/v1/urls", nil)
+	w := httptest.NewRecorder()
+	app, _ := newTestApp()
+	app.writeShortURL(w, r, path)
+
+	// Extract the response.
+	code, header, body := getResponse(t, w)
+
+	// Validate the response.
+	validateCode(t, want.code, code)
+	validateHeader(t, want.header, header)
+	for _, wantBody := range want.body {
+		validateBodyContains(t, wantBody, string(body))
 	}
 }

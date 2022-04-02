@@ -58,7 +58,7 @@ func TestRedirect(t *testing.T) {
 
 			// Validate the response.
 			validateCode(t, test.wantCode, code)
-			validateBodyContains(t, []byte(test.wantBody), body)
+			validateBodyContains(t, test.wantBody, string(body))
 		})
 	}
 }
@@ -78,7 +78,7 @@ func TestRegisterURL(t *testing.T) {
 			body:       `{"url":"https://facebook.com", "expireAt":"2023-12-22T12:00:00Z"}`,
 			wantCode:   http.StatusOK,
 			wantHeader: http.Header{"Content-Type": []string{"application/json"}},
-			wantBody:   []string{"id", "shortUrl"},
+			wantBody:   []string{"id", "shortUrl", "localhost:8080/"},
 		},
 		{
 			name:       "invalid method",
@@ -138,7 +138,7 @@ func TestRegisterURL(t *testing.T) {
 			validateCode(t, test.wantCode, code)
 			validateHeader(t, test.wantHeader, header)
 			for _, wantBody := range test.wantBody {
-				validateBodyContains(t, []byte(wantBody), body)
+				validateBodyContains(t, wantBody, string(body))
 			}
 		})
 	}
