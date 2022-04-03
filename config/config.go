@@ -57,7 +57,7 @@ func New() Config {
 	conf.DB.QueryTimeout = time.Second * time.Duration(*queryTimeOut)
 
 	flag.IntVar(&conf.ShortURL.Len, "len-short-url", 8, "Length of shortened URL (should be greater than 4 and less than 17)")
-	flag.IntVar(&conf.ShortURL.MaxReShortenLen, "max-len-reshort-url", 12, "Maximum length of shortened URL for reshortening URL in case of short URL conflicts, should be greater or equal than len-short-url and less than 44")
+	flag.IntVar(&conf.ShortURL.MaxReShortenLen, "max-len-reshort-url", 12, "Maximum length of shortened URL for reshortening URL in case of short URL conflicts, should be greater than len-short-url and less than 44")
 
 	flag.Parse()
 
