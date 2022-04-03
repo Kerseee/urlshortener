@@ -9,7 +9,7 @@ UrlShortener is a simple http web application that provide url shortening and re
 
 ## Getting Start
 1. Create a PostgreSQL database for UrlShortener.
-2. Copy the database DSN and replace the $URLSHORTENER_DB_DSN in "./config/.envrc"
+2. Copy the database DSN and replace the value of $URLSHORTENER_DB_DSN in "./config/.envrc"
 ```
 export URLSHORTENER_DB_DSN='postgres://urlshortener:password@localhost/urlshortener?sslmode=disable' 
 ```
@@ -64,7 +64,7 @@ Content-Length: 44
 A valid request must contain a valid http or https url and an after-now expire time in valid JSON format. It should meet these constraints:
 - Has exactly one "url" key and its value is a single string having prefix "http://" or "https://".
 - Has exactly one "expireAt" key and it has a single JSON-formatted time value.
-- Value of "expireAt" should not before now.
+- Value of "expireAt" should not be before now.
 - A request body should contain exactly one JSON object.
 
 If one of the constraint is violated, the client will recieve a response like:
@@ -101,14 +101,14 @@ ___
 # 專案思路
 
 ### 第三方套件選擇
-在開始專案之前，曾考慮在多個部件上是否使用第三方套件，例如後端框架 [Gin](https://github.com/gin-gonic/gin)、 servemux 套件 [httprouter](https://github.com/julienschmidt/httprouter)、資料庫連接 [Gorm](https://gorm.io/)、[測試 testify](https://github.com/stretchr/testify)、logging [zap](https://github.com/uber-go/zap) ，確實基於效能及維護難易程度考量，使用上述框架或第三方套件可能為較佳的選擇。
+在開始專案之前，曾考慮是否使用第三方套件實作許多部分，例如後端框架 [Gin](https://github.com/gin-gonic/gin)、 servemux 套件 [httprouter](https://github.com/julienschmidt/httprouter)、資料庫連接 [Gorm](https://gorm.io/)、[測試 testify](https://github.com/stretchr/testify)、logging [zap](https://github.com/uber-go/zap) ，確實基於效能及維護難易程度考量，使用上述框架或第三方套件可能為較佳的選擇。
 
 然而此專案作為一學習專案，且開發目的為應徵實習生職缺，恰好是一個更加深入學習 Go standard library 並藉此打好基礎的機會，個人認為若能先從 build from scratch 出發，未來需要使用框架或第三方套件時學習效率將會較為提升。
 
 基於上述原因，此專案除了因 standard library 中 database/sql 必須使用第三方 driver 而使用了 [pq](github.com/lib/pq)，其餘皆無使用任何第三方套件。
 
 ## 專案架構
-專案架構參考 [Standard Go Project Layout](https://github.com/golang-standards/project-layout)、[Let's go](https://lets-go.alexedwards.net/) 以及 [Let's go further](https://lets-go-further.alexedwards.net/)
+專案架構參考 [Standard Go Project Layout](https://github.com/golang-standards/project-layout)、[Let's go](https://lets-go.alexedwards.net/) 以及 [Let's go further](https://lets-go-further.alexedwards.net/)。
 
 ## API 設計
 
