@@ -1,6 +1,6 @@
 # UrlShortener
 
-UrlShortener is a simple http web application that provide url shortening and redirection. It is built from scratch in Go and PostgreSQL.
+UrlShortener is a simple http web application that provide url shortening and redirection. It is built from scratch in Go.
 
 ## Prerequisites
 - [PostgreSQL](https://www.postgresql.org/)
